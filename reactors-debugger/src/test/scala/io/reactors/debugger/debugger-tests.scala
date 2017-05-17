@@ -3,25 +3,19 @@ package debugger
 
 
 
-import java.io.File
+import io.reactors.test._
 import org.openqa.selenium._
 import org.openqa.selenium.chrome._
 import org.openqa.selenium.interactions._
 import org.openqa.selenium.support.ui._
 import org.scalatest._
 import scala.collection.JavaConverters._
-import scala.sys.process._
 
 
 
 class DebuggerTest extends FunSuite {
   test("test basic debugger scenarios") {
-    val classpath = System.getProperty("java.class.path")
-    val cmd = Seq(
-      "xvfb-run", "java", "-cp", classpath, "io.reactors.debugger.DebuggerTest")
-    val cwd = new File("../")
-    if (!sys.env.contains("TRAVIS")) assert(Process(cmd, cwd).! == 0)
-    else println("Skipping UI test in Travis!")
+    runXvfbTest("io.reactors.debugger.DebuggerTest", Some("../target/videos"))
   }
 }
 
@@ -29,7 +23,7 @@ class DebuggerTest extends FunSuite {
 object DebuggerTest {
   def main(args: Array[String]) {
     // Initialize driver.
-    System.setProperty("webdriver.chrome.driver", "tools/chromedriver")
+    System.setProperty("webdriver.chrome.driver", "../tools/chromedriver")
     val options = new ChromeOptions
     options.setBinary("/usr/bin/chromium-browser")
     val driver = new ChromeDriver(options)
@@ -40,7 +34,7 @@ object DebuggerTest {
         name = "io.reactors.debugger.WebDebugger"
       }
     """)
-    val bundle = new ReactorSystem.Bundle(Scheduler.default, config)
+    val bundle = new ReactorSystem.Bundle(JvmScheduler.default, config)
     val system = new ReactorSystem("web-debugger-test-system", bundle)
 
     var error: Throwable = null

@@ -6,6 +6,7 @@
 @@library(io/reactors/debugger/lib/bootstrap/js/bootstrap.min.js)
 @@library(io/reactors/debugger/lib/sigmajs/sigma.js)
 @@library(io/reactors/debugger/lib/sigmajs/plugins/sigma.plugins.animate.min.js)
+@@library(io/reactors/debugger/lib/sigmajs/plugins/sigma.layout.forceAtlas2.min.js)
 
 
 <template id="x-graph">
@@ -23,7 +24,8 @@
     data: function() {
       return {
         uid: Uid.num(),
-        subscriptions: []
+        subscriptions: [],
+        layoutRequested: false
       };
     },
     attached: function() {
@@ -31,6 +33,9 @@
 
       var style = window.getComputedStyle(document.body);
 
+      sigma.classes.graph.addMethod('getNodeCount', function() {
+        return this.nodesArray.length;
+      });
       this.sigma = new sigma({
         container: "x-graph-sigma-" + this.uid,
         settings: {
@@ -46,12 +51,24 @@
           minEdgeSize: 0.15,
           maxEdgeSize: 0.35,
           autoRescale: false,
+          minArrowSize: 5,
+          batchEdgesDrawing: true,
+          hideEdgesOnMove: true,
           zoomMin: 0.007,
           zoomMax: 0.125,
           font: "Helvetica"
-        }
+        },
+        renderers: [
+          {
+            container: document.getElementById("x-graph-sigma-" + this.uid),
+            type: "canvas" // sigma.renderers.canvas works as well
+          }
+        ]
       });
       this.sigma.camera.goTo({ x: 3, y: 3, ratio: 0.01 });
+
+      // Start dynamic layout.
+      this.requestDynamicLayout();
 
       // Install event stream observers.
       this.subscriptions.push(this.events.stateReset.observe(() => {
@@ -98,6 +115,34 @@
       });
     },
     methods: {
+      requestDynamicLayout: function() {
+        if (this.layoutRequested) return;
+
+        this.layoutRequested = true;
+        setTimeout(() => {
+          this.layoutRequested = false;
+          if (this.sigma.isForceAtlas2Running()) {
+            this.sigma.killForceAtlas2();
+          };
+          this.sigma.startForceAtlas2({
+            worker: true,
+            barnesHutOptimize: true,
+            slowDown: 2,
+            gravity: 1,
+            strongGravityMode: true,
+            scalingRatio: 0.5,
+            adjustSizes: true
+          });
+          setTimeout(() => {
+            if (this.sigma.isForceAtlas2Running()) {
+              this.sigma.killForceAtlas2();
+            };
+            this.sigma.refresh({
+              skipIndexation: true
+            });
+          }, Math.min(2000, 400 + 2 * this.sigma.graph.getNodeCount()));
+        }, 800);
+      },
       resetState: function() {
         this.sigma.graph.clear();
       },
@@ -124,6 +169,7 @@
               y: y,
               size: 1.0
             });
+            this.requestDynamicLayout();
           },
           () => {}
         );
@@ -168,15 +214,16 @@
               id: key,
               source: send[0],
               target: send[1],
-              size: 0.2,
+              size: 0.12,
               color: style.getPropertyValue("--graph-edge-color"),
-              type: "arrow"
+              type: "curvedArrow"
             });
-            this.sigma.refresh({
-              skipIndexation: true
-            });
+            this.requestDynamicLayout();
           }
         }
+        this.sigma.refresh({
+          skipIndexation: true
+        });        
       }
     },
     destroyed: function() {

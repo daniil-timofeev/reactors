@@ -1,4 +1,4 @@
-image: stormenroute/storm-enroute-build:0.13
+image: stormenroute/storm-enroute-build:0.15
 
 before_script:
   - |
@@ -15,12 +15,48 @@ before_script:
     echo 'scalacOptions ++= Seq("-Xmax-classfile-name", "90")' > ~/.sbt/0.13/local.sbt
   - git clone git@ci.storm-enroute.com:storm-enroute/super-storm-enroute.git ~/.super-storm-enroute
 
+after_script:
+  - rm -rf ~/.super-storm-enroute
 
-gate:
+
+gate-ubuntu:
+  tags:
+    - ubuntu
+    - gate
   script:
     - ~/.super-storm-enroute/tools/ci reactors $(pwd)
 
 
-bench:
+gate-standalone-ubuntu:
+  tags:
+    - ubuntu
+    - gate
+  script:
+    - ~/.super-storm-enroute/tools/sbt scalastyle
+    - ~/.super-storm-enroute/tools/sbt test
+    - ~/.super-storm-enroute/tools/sbt clean
+    - ~/.super-storm-enroute/tools/sbt ++2.12.2 test
+
+
+gate-osx:
+  tags:
+    - osx
+    - gate
+  script:
+    - ~/.super-storm-enroute/tools/ci reactors $(pwd)
+  cache:
+    paths:
+      - /root/.ivy2/
+      - /root/.sbt/
+
+
+bench-ubuntu:
+  tags:
+    - ubuntu
+    - bench
   script:
     - ~/.super-storm-enroute/tools/ci --bench=True . $(pwd)
+  cache:
+    paths:
+      - /root/.ivy2/
+      - /root/.sbt/

@@ -1,7 +1,7 @@
 CI service | Status | Description
 -----------|--------|------------
 Travis | [![Build Status](https://travis-ci.org/reactors-io/reactors.png?branch=master)](https://travis-ci.org/reactors-io/reactors) | Linux container tests
-Maven | [![Maven Artifact](https://img.shields.io/maven-central/v/com.storm-enroute/reactors_2.11.svg)](http://mvnrepository.com/artifact/com.storm-enroute/reactors_2.11/0.6) | Artifact on Maven
+Maven | [![Maven Artifact](https://img.shields.io/maven-central/v/io.reactors/reactors_2.11.svg)](http://mvnrepository.com/artifact/io.reactors/reactors_2.11/0.7) | Artifact on Maven
 
 <img src='reactress-title-96.png'></img>
 
@@ -18,7 +18,7 @@ on asynchronous event streams.
 Add the following line to your SBT project definition:
 
 ```
-libraryDependencies ++= Seq("com.storm-enroute" %% "reactors" % "0.6")
+libraryDependencies ++= Seq("io.reactors" %% "reactors" % "0.8")
 ```
 
 Then, import the `io.reactors` package in your project:

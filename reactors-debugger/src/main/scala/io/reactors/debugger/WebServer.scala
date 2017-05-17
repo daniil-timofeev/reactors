@@ -34,7 +34,7 @@ class WebServer(val system: ReactorSystem, webapi: WebApi) {
 
 object WebServer {
   private[debugger] def createServer(system: ReactorSystem, webapi: WebApi): Setup = {
-    val port = system.bundle.config.getInt("debug-api.port")
+    val port = system.bundle.config.int("debug-api.port")
 
     def loadPage(path: String): String = {
       sealed trait NodeType
@@ -60,7 +60,7 @@ object WebServer {
       def interpolate(n: Node): String = {
         val scopes = new HashMap[String, Object]
         scopes.put("reactor-system.url",
-          s"${system.bundle.urlMap("reactor.udp").url.host}:$port")
+          s"${system.bundle.urlMap("udp").url.host}:$port")
         scopes.put("reactor-system.version", "0.7")
         scopes.put("debugger-ui.configuration", "{}")
         scopes.put("debugger-ui.plugins", "<!-- No plugins -->")
